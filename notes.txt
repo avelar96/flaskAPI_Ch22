@@ -1,0 +1,10 @@
+activate venv:
+venv\Scripts\activate
+
+
+#start server:
+python server.py
+
+
+# install packages
+python -m pip install <package_name>
