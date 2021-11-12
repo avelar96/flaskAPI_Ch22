@@ -1,7 +1,7 @@
 
 from flask import Flask, abort, render_template, request
 from moc_data import mock_data
-from flask_cors import CORS # pip install flask-cors
+from flask_cors import CORS  # pip install flask-cors
 from config import db, json_parse
 import json
 from bson import ObjectId
@@ -68,16 +68,17 @@ def address():
 @app.route("/api/catalog", methods=["get"])
 def get_catalog():
     # returns catalog as JSON
-    cursor = db.products.find({}) # find with no filter = get all data in the collection
+    # find with no filter = get all data in the collection
+    cursor = db.products.find({})
     catalog = []
     for prod in cursor:
         catalog.append(prod)
 
-    #inv homework:python list comprehension
+    # inv homework:python list comprehension
 
-    print( len(catalog), "Record obtained form db")
+    print(len(catalog), "Record obtained form db")
 
-    return json_parse(catalog)  
+    return json_parse(catalog)
 
 
 @app.route("/api/catalog", methods=["post"])
@@ -88,7 +89,8 @@ def save_product():
     # validate that title exists in dict,if not abort(404)
     if not 'title' in product or len(product["title"]) < 5:
         # 400 = bad request
-        return abort(400, "Title is required, and should contain at least 5 chars") #404 bad request
+        # 404 bad request
+        return abort(400, "Title is required, and should contain at least 5 chars")
 
     # validate that price exist and is greater than 0
     if not 'price' in product:
@@ -123,11 +125,9 @@ def get_categories():
 def get_product(id):
     product = db.products.find_one({"_id": ObjectId(id)})
     if not product:
-        return abort(404) # 404 = Not Found
+        return abort(404)  # 404 = Not Found
 
     return json_parse(product)
-
-
 
 
 # /api/catalog<category>
@@ -142,7 +142,6 @@ def get_by_category(category):
     return json_parse(list)
 
 
-
 # /api/cheapest
 # cheapest product
 
@@ -155,8 +154,23 @@ def cheapest_product():
             pivot = prod
 
     return json_parse(pivot)
-  
 
+
+###Orders###
+
+@app.route("/api/order", methods=["POST"])
+def save_order():
+    # get the order object from the request
+    order = request.get_json()
+    if order is None:
+        return abort(400, "Nothing to save")
+
+    # validations
+
+    # save the object in the database (orders collection)
+    db.orders.insert_one(order)
+    # return the stored object
+    return json_parse(order)
 
 
 ###coupon codes###
@@ -167,13 +181,15 @@ def save_coupon():
     coupon = request.get_json()
 
     # validation
-    if not "code" in coupon or len (coupon["code"]) < 5:
+    if not "code" in coupon or len(coupon["code"]) < 5:
         return abort(400, "Code is required, should contain 5 characters")
     # save
     db.couponCodes.insert_one(coupon)
     return json_parse(coupon)
 
 # GET to /api/couponCodes
+
+
 @app.route("/api/couponCodes", methods=["GET"])
 def get_coupons():
     cursor = db.couponCodes.find({})
@@ -190,7 +206,7 @@ def get_coupons():
 def get_coupon_by_code(code):
     # get the coupon from db
     coupon = db.couponCodes.find_one({"code": code})
-    #if it is none return 404 error
+    # if it is none return 404 error
     if coupon is None:
         return abort(404, "Invalid coupon code")
 
@@ -199,20 +215,15 @@ def get_coupon_by_code(code):
 
 @app.route("/test/onetime/filldb")
 def fill_db():
-    #iterate the mock_data list
+    # iterate the mock_data list
     for prod in mock_data:
-        #save every object to db.products
-        prod.pop("_id") #remove the id from dict/product
-        db.products.insert_one(prod)# stores
+        # save every object to db.products
+        prod.pop("_id")  # remove the id from dict/product
+        db.products.insert_one(prod)  # stores
 
     return "Done!"
-    
-
-
 
 
 # start the application
 # debug true
 app.run(debug=True)
-
-#one

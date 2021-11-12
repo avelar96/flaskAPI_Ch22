@@ -1,6 +1,5 @@
 from moc_data import mock_data
 
-
 me = {
     "name": "Martin",
     "last": "Avelar",
